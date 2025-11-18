@@ -11,9 +11,13 @@
   },
   "dependencies": {
     "@lexical/react": "^0.38.2",
+    "@lexical/yjs": "^0.38.2",
+    "@y/websocket-server": "^0.1.1",
     "lexical": "^0.38.2",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.27"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

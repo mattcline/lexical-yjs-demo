@@ -1,46 +1,65 @@
-import {$getRoot, $getSelection} from 'lexical';
-import {useEffect} from 'react';
+import { useCallback } from 'react';
 
-import {AutoFocusPlugin} from '@lexical/react/LexicalAutoFocusPlugin';
+import {$getRoot, $createParagraphNode, $createTextNode} from 'lexical';
+import {LexicalCollaboration} from '@lexical/react/LexicalCollaborationContext';
 import {LexicalComposer} from '@lexical/react/LexicalComposer';
-import {RichTextPlugin} from '@lexical/react/LexicalRichTextPlugin';
 import {ContentEditable} from '@lexical/react/LexicalContentEditable';
-import {HistoryPlugin} from '@lexical/react/LexicalHistoryPlugin';
 import {LexicalErrorBoundary} from '@lexical/react/LexicalErrorBoundary';
-
-const theme = {
-  // Theme styling goes here
-  //...
-}
-
-// Catch any errors that occur during Lexical updates and log them
-// or throw them as needed. If you don't throw them, Lexical will
-// try to recover gracefully without losing user data.
-function onError(error: any) {
-  console.error(error);
-}
+import {RichTextPlugin} from '@lexical/react/LexicalRichTextPlugin';
+import {CollaborationPlugin} from '@lexical/react/LexicalCollaborationPlugin';
+import * as Y from 'yjs';
+import {WebsocketProvider} from 'y-websocket';
 
 export function Editor() {
   const initialConfig = {
-    namespace: 'MyEditor',
-    theme,
-    onError,
+    // NOTE: This is critical for collaboration plugin to set editor state to null. It
+    // would indicate that the editor should not try to set any default state
+    // (not even empty one), and let collaboration plugin do it instead
+    editorState: null,
+    namespace: 'Demo',
+    nodes: [],
+    onError: (error: Error) => {
+      throw error;
+    },
+    theme: {},
   };
 
+  function getDocFromMap(id: string, yjsDocMap: Map<string, Y.Doc>): Y.Doc {
+    let doc = yjsDocMap.get(id);
+  
+    if (doc === undefined) {
+      doc = new Y.Doc();
+      yjsDocMap.set(id, doc);
+    } else {
+      doc.load();
+    }
+
+    return doc;
+  }
+
+  const providerFactory = useCallback(
+    (id: string, yjsDocMap: Map<string, Y.Doc>) => {
+      const doc = getDocFromMap(id, yjsDocMap);
+
+      return new WebsocketProvider('ws://localhost:1234', id, doc, {
+        connect: false,
+      });
+    }, [],
+  );
+
   return (
-    <LexicalComposer initialConfig={initialConfig}>
-      <RichTextPlugin
-        contentEditable={
-          <ContentEditable
-            aria-placeholder={'Enter some text...'}
-            placeholder={<div>Enter some text...</div>}
-            style={{width: '800px', height: '800px'}}
-          />
-        }
-        ErrorBoundary={LexicalErrorBoundary}
-      />
-      <HistoryPlugin />
-      <AutoFocusPlugin />
-    </LexicalComposer>
+    <LexicalCollaboration>
+      <LexicalComposer initialConfig={initialConfig}>
+        <RichTextPlugin
+          contentEditable={<ContentEditable style={{width: '800px', height: '800px'}} />}
+          placeholder={<div className="editor-placeholder">Enter some rich text...</div>}
+          ErrorBoundary={LexicalErrorBoundary}
+        />
+        <CollaborationPlugin
+          id="lexical/react-rich-collab"
+          providerFactory={providerFactory}
+        />
+      </LexicalComposer>
+    </LexicalCollaboration>
   );
 }
