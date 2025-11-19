@@ -43,6 +43,9 @@ wss.on('connection', (ws, req) => {
       error: error.message,
       name: error.name 
     });
+
+    // TODO: handle this error in the service where you create JWT tokens
+    // to refresh the token upon expiration
     ws.close(4401, 'Unauthorized');
   }
 });
