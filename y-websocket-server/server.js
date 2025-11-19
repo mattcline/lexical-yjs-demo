@@ -20,6 +20,7 @@ wss.on('connection', (ws, req) => {
   const room = url.pathname.slice(1);
 
   try {
+    // TODO: uncomment this code block to implement access control in production
     // const decoded = jwt.verify(token, process.env.YOUR_SECRET_KEY);
     
     // if (decoded.document_id !== room) {
