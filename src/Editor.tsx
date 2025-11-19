@@ -24,7 +24,7 @@ export function Editor() {
     theme: {},
   };
 
-  function getDocFromMap(id: string, yjsDocMap: Map<string, Y.Doc>): Y.Doc {
+  const getDocFromMap = (id: string, yjsDocMap: Map<string, Y.Doc>): Y.Doc => {
     let doc = yjsDocMap.get(id);
   
     if (doc === undefined) {
